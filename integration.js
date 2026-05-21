@@ -63,23 +63,32 @@ function startup(logger) {
 // ── Blocklist helpers ─────────────────────────────────────────────────────────
 
 function _setupRegexBlocklists(options) {
-  if (options.ipBlocklistRegex !== previousIpRegexAsString && options.ipBlocklistRegex.length === 0) {
+  // Guard against null/undefined option value
+  const regexStr = options.ipBlocklistRegex || '';
+  if (regexStr !== previousIpRegexAsString && regexStr.length === 0) {
     Logger.debug('Removing IP blocklist Regex Filtering');
     previousIpRegexAsString = '';
     ipBlocklistRegex = null;
   } else {
-    if (options.ipBlocklistRegex !== previousIpRegexAsString) {
-      previousIpRegexAsString = options.ipBlocklistRegex;
+    if (regexStr !== previousIpRegexAsString) {
+      previousIpRegexAsString = regexStr;
       Logger.debug({ ipBlocklistRegex: previousIpRegexAsString }, 'Modifying IP blocklist Regex');
-      ipBlocklistRegex = new RegExp(options.ipBlocklistRegex, 'i');
+      ipBlocklistRegex = new RegExp(regexStr, 'i');
     }
   }
 }
 
-function _isEntityBlocklisted(entity, { blocklist }) {
-  Logger.trace({ blocklist }, 'blocklist Values');
+function _isEntityBlocklisted(entity, options) {
+  // Parse the comma-separated blocklist string into an array for exact-match comparison.
+  // Using _.includes() on the raw string would do a substring check (false positives).
+  const blocklistArr = (options.blocklist || '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
 
-  const entityIsBlocklisted = _.includes(blocklist, entity.value.toLowerCase());
+  Logger.trace({ blocklistArr }, 'blocklist Values');
+
+  const entityIsBlocklisted = blocklistArr.includes(entity.value.toLowerCase());
   const ipIsBlocklisted = entity.isIP && ipBlocklistRegex !== null && ipBlocklistRegex.test(entity.value);
 
   if (ipIsBlocklisted) Logger.debug({ ip: entity.value }, 'Blocked blocklisted IP lookup');
@@ -173,9 +182,12 @@ function _searchClients(siteId, siteName, entity, options, cb) {
 
     const clients = (body && Array.isArray(body.data)) ? body.data : [];
 
-    // Attach siteId and siteName to each result for onMessage use
+    // Normalize clientId: the UniFi API returns the UUID as `id`.
+    // We explicitly map it to `clientId` so the block/reconnect actions in
+    // onMessage always have the correct field regardless of API version.
     const enriched = clients.map((c) => ({
       ...c,
+      clientId: c.id || c.clientId || c._id || '',
       siteId,
       siteName
     }));
@@ -227,19 +239,18 @@ function _searchDevices(siteId, siteName, entity, options, cb) {
 
     const devices = (body && Array.isArray(body.data)) ? body.data : [];
 
-    // If the controller returned ALL devices (ignoring filter), fall back to client-side filter
-    if (devices.length > 1) {
-      const filtered = devices.filter((d) =>
-        entity.isIP
-          ? d.ipAddress === entity.value
-          : (d.macAddress || '').toLowerCase() === entity.value.toLowerCase()
-      );
+    // Always apply client-side filtering regardless of result count.
+    // Some controller versions ignore the filter query parameter entirely and
+    // return all devices. A `devices.length > 1` heuristic was unreliable —
+    // it would skip filtering when only 1 device existed in the site, allowing
+    // false-positive results through when the filter was ignored.
+    const filtered = devices.filter((d) =>
+      entity.isIP
+        ? d.ipAddress === entity.value
+        : (d.macAddress || '').toLowerCase() === entity.value.toLowerCase()
+    );
 
-      const enriched = filtered.map((d) => ({ ...d, siteId, siteName }));
-      return cb(null, enriched);
-    }
-
-    const enriched = devices.map((d) => ({ ...d, siteId, siteName }));
+    const enriched = filtered.map((d) => ({ ...d, siteId, siteName }));
     cb(null, enriched);
   });
 }

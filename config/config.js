@@ -1,21 +1,32 @@
 'use strict';
 
 module.exports = {
-  /**
-   * @type Array
-   * @optional
-   */
+  name: 'UniFi Network',
+  acronym: 'UNF',
+  description:
+    'Query IP addresses and MAC addresses across all sites on an on-premise UniFi Network controller. Supports block and reconnect actions for connected clients.',
+  entityTypes: ['IPv4', 'MAC'],
+  defaultColor: 'light-blue',
+  styles: ['./styles/styles.less'],
+  onDemandOnly: false,
+  block: {
+    component: { file: './components/block.js' },
+    template: { file: './templates/block.hbs' }
+  },
+  // UniFi controllers commonly use self-signed TLS certificates.
+  // rejectUnauthorized is set to false to allow connections to controllers
+  // that have not been issued a publicly trusted certificate.
+  request: {
+    cert: '',
+    key: '',
+    passphrase: '',
+    ca: '',
+    proxy: '',
+    rejectUnauthorized: false
+  },
   logging: {
     level: 'info'
   },
-  /**
-   * Options that are displayed to the user/admin in the Polarity integration settings page and
-   * returned as part of the `options` object passed to the `startup`, `validateOptions`,
-   * `onMessage` and `doLookup` callbacks.
-   *
-   * @type Array
-   * @optional
-   */
   options: [
     {
       key: 'url',

@@ -1,0 +1,21 @@
+{
+  "root": {
+    "path": "",
+    "on_null": "return_empty"
+  },
+  "pipeline": [
+    { "op": "copy", "from": "clients[].name",       "to": "reduced.client_names" },
+    { "op": "copy", "from": "clients[].ipAddress",  "to": "reduced.client_ips" },
+    { "op": "copy", "from": "clients[].macAddress", "to": "reduced.client_macs" },
+    { "op": "copy", "from": "clients[].status",     "to": "reduced.client_statuses" },
+    { "op": "copy", "from": "clients[].siteName",   "to": "reduced.client_sites" },
+    { "op": "copy", "from": "devices[].name",       "to": "reduced.device_names" },
+    { "op": "copy", "from": "devices[].model",      "to": "reduced.device_models" },
+    { "op": "copy", "from": "devices[].state",      "to": "reduced.device_states" },
+    { "op": "copy", "from": "devices[].siteName",   "to": "reduced.device_sites" },
+    { "op": "prune", "strategy": "empty_values",    "target": "reduced" }
+  ],
+  "output": {
+    "result": "$working.reduced"
+  }
+}

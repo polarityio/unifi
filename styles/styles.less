@@ -1,0 +1,97 @@
+/* UniFi Network Integration — Scoped Styles */
+
+/* ── Section toggle (collapsible headers) ───────────────────────────────── */
+.unifi-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 5px 0 4px;
+  margin-top: 6px;
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+  user-select: none;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  .p-title {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    margin: 0;
+  }
+
+  .unifi-count {
+    font-weight: normal;
+    opacity: 0.5;
+  }
+
+  .unifi-chevron {
+    font-size: 11px;
+    color: #aaa;
+  }
+}
+
+.unifi-section-body {
+  padding: 4px 0 6px 0;
+}
+
+/* ── Per-item entry rows ─────────────────────────────────────────────────── */
+.unifi-item-entry {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+/* ── Status colours ──────────────────────────────────────────────────────── */
+.unifi-status-connected {
+  color: #52c41a;
+  font-weight: 600;
+}
+
+.unifi-status-blocked {
+  color: #ff4d4f;
+  font-weight: 600;
+}
+
+.unifi-status-updating {
+  color: #faad14;
+  font-weight: 600;
+}
+
+/* ── Action buttons area ─────────────────────────────────────────────────── */
+.unifi-actions {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.unifi-action-btn {
+  font-size: 11px;
+}
+
+.unifi-action-msg {
+  font-size: 11px;
+  opacity: 0.8;
+  width: 100%;
+  margin-top: 3px;
+}
+
+.unifi-working {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* ── Error banner ────────────────────────────────────────────────────────── */
+.unifi-error {
+  color: #ff4d4f;
+  font-size: 11px;
+  margin-bottom: 6px;
+}

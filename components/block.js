@@ -1,82 +1,108 @@
 polarity.export = PolarityComponent.extend({
   details: Ember.computed.alias('block.data.details'),
 
-  /**
-   * Per-client loading state keyed by clientId.
-   * @type {Object.<string, boolean>}
-   */
-  isBlockingClient: {},
+  // ── Computed guards for {{#each}} ────────────────────────────────────────
 
-  /**
-   * Per-client inline feedback message keyed by clientId.
-   * @type {Object.<string, string>}
-   */
-  blockActionMessage: {},
+  hasClients: Ember.computed('details.clients', function () {
+    const clients = this.get('details.clients');
+    return Array.isArray(clients) && clients.length > 0;
+  }),
+
+  hasDevices: Ember.computed('details.devices', function () {
+    const devices = this.get('details.devices');
+    return Array.isArray(devices) && devices.length > 0;
+  }),
+
+  // ── Lifecycle ────────────────────────────────────────────────────────────
+
+  init() {
+    this._super(...arguments);
+    // Guard ensures idempotent re-renders don't reset state
+    if (!this.get('block._state')) {
+      this.set('block._state', {
+        showClients: true,
+        showDevices: true,
+        // Per-client loading flags keyed by clientId
+        isBlocking: {},
+        // Per-client inline feedback messages keyed by clientId
+        actionMessage: {}
+      });
+    }
+  },
+
+  // ── Actions ──────────────────────────────────────────────────────────────
 
   actions: {
+    toggleSection(section) {
+      const key = `block._state.show${section}`;
+      this.set(key, !this.get(key));
+    },
+
     /**
      * Send a BLOCK_CLIENT message for the given client result.
-     * @param {Object} clientResult - a member of details.clients[]
+     * @param {Object} client - a member of details.clients[]
      */
-    blockClient(clientResult) {
-      const clientId = clientResult.clientId;
+    blockClient(client) {
+      const clientId = client.clientId;
+      const busyKey = `block._state.isBlocking.${clientId}`;
+      const msgKey = `block._state.actionMessage.${clientId}`;
 
-      // Set loading state
-      this.set(`isBlockingClient.${clientId}`, true);
-      this.set(`blockActionMessage.${clientId}`, '');
+      this.set(busyKey, true);
+      this.set(msgKey, '');
 
       this.sendIntegrationMessage({
         action: 'BLOCK_CLIENT',
-        siteId: clientResult.siteId,
+        siteId: client.siteId,
         clientId
       })
         .then((response) => {
           if (response && response.success) {
-            // Update the status directly in the block data so the UI refreshes
-            Ember.set(clientResult, 'status', 'BLOCKED');
-            this.set(`blockActionMessage.${clientId}`, '✅ Client blocked');
+            Ember.set(client, 'status', 'BLOCKED');
+            this.set(msgKey, '✅ Client blocked');
           } else {
             const msg = (response && response.message) || 'Unknown error';
-            this.set(`blockActionMessage.${clientId}`, `⚠️ Failed: ${msg}`);
+            this.set(msgKey, `⚠️ Failed: ${msg}`);
           }
         })
         .catch((err) => {
-          this.set(`blockActionMessage.${clientId}`, `⚠️ Error: ${err.message || err}`);
+          this.set(msgKey, `⚠️ Error: ${err.message || err}`);
         })
         .finally(() => {
-          this.set(`isBlockingClient.${clientId}`, false);
+          this.set(busyKey, false);
         });
     },
 
     /**
      * Send a RECONNECT_CLIENT message for the given client result.
-     * @param {Object} clientResult - a member of details.clients[]
+     * @param {Object} client - a member of details.clients[]
      */
-    reconnectClient(clientResult) {
-      const clientId = clientResult.clientId;
+    reconnectClient(client) {
+      const clientId = client.clientId;
+      const busyKey = `block._state.isBlocking.${clientId}`;
+      const msgKey = `block._state.actionMessage.${clientId}`;
 
-      this.set(`isBlockingClient.${clientId}`, true);
-      this.set(`blockActionMessage.${clientId}`, '');
+      this.set(busyKey, true);
+      this.set(msgKey, '');
 
       this.sendIntegrationMessage({
         action: 'RECONNECT_CLIENT',
-        siteId: clientResult.siteId,
+        siteId: client.siteId,
         clientId
       })
         .then((response) => {
           if (response && response.success) {
-            Ember.set(clientResult, 'status', 'CONNECTED');
-            this.set(`blockActionMessage.${clientId}`, '✅ Client reconnected');
+            Ember.set(client, 'status', 'CONNECTED');
+            this.set(msgKey, '✅ Client reconnected');
           } else {
             const msg = (response && response.message) || 'Unknown error';
-            this.set(`blockActionMessage.${clientId}`, `⚠️ Failed: ${msg}`);
+            this.set(msgKey, `⚠️ Failed: ${msg}`);
           }
         })
         .catch((err) => {
-          this.set(`blockActionMessage.${clientId}`, `⚠️ Error: ${err.message || err}`);
+          this.set(msgKey, `⚠️ Error: ${err.message || err}`);
         })
         .finally(() => {
-          this.set(`isBlockingClient.${clientId}`, false);
+          this.set(busyKey, false);
         });
     }
   }
