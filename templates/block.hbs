@@ -1,0 +1,213 @@
+{{! UniFi Network — Block (Detail) Template }}
+
+{{#if details.error}}
+  <div class="alert alert-danger">
+    <i class="fa fa-exclamation-triangle"></i>
+    {{details.error}}
+  </div>
+{{/if}}
+
+{{! ── Connected Clients ──────────────────────────────────────────────────── }}
+{{#each details.clients as |client|}}
+  {{#block-section
+    title=(concat "🖥 Connected Client — " client.siteName)
+    isOpen=(eq @index 0)
+  }}
+
+    {{! Identity Table }}
+    <div class="p-table">
+      {{#if client.name}}
+        <div class="p-row">
+          <span class="p-key">Host Name</span>
+          <span class="p-value">{{client.name}}</span>
+        </div>
+      {{/if}}
+      {{#if client.macAddress}}
+        <div class="p-row">
+          <span class="p-key">MAC Address</span>
+          <span class="p-value">{{client.macAddress}}</span>
+        </div>
+      {{/if}}
+      {{#if client.ipAddress}}
+        <div class="p-row">
+          <span class="p-key">IP Address</span>
+          <span class="p-value">{{client.ipAddress}}</span>
+        </div>
+      {{/if}}
+      {{#if client.type}}
+        <div class="p-row">
+          <span class="p-key">Type</span>
+          <span class="p-value">{{client.type}}</span>
+        </div>
+      {{/if}}
+      {{#if client.status}}
+        <div class="p-row">
+          <span class="p-key">Status</span>
+          <span class="p-value
+            {{if (eq client.status 'CONNECTED') 'p-text-green'}}
+            {{if (eq client.status 'BLOCKED') 'p-text-red'}}
+          ">{{client.status}}</span>
+        </div>
+      {{/if}}
+    </div>
+
+    {{! Network Table }}
+    <div class="p-table p-mt-1">
+      <div class="p-row">
+        <span class="p-key">Site</span>
+        <span class="p-value">{{client.siteName}}</span>
+      </div>
+      {{#if (and client.ssid (eq client.type 'WIRELESS'))}}
+        <div class="p-row">
+          <span class="p-key">SSID</span>
+          <span class="p-value">{{client.ssid}}</span>
+        </div>
+      {{/if}}
+      {{#if client.networkId}}
+        <div class="p-row">
+          <span class="p-key">Network ID</span>
+          <span class="p-value">{{client.networkId}}</span>
+        </div>
+      {{/if}}
+      {{#if client.uplinkDeviceMac}}
+        <div class="p-row">
+          <span class="p-key">Uplink Device MAC</span>
+          <span class="p-value">{{client.uplinkDeviceMac}}</span>
+        </div>
+      {{/if}}
+    </div>
+
+    {{! Traffic / Signal Table }}
+    <div class="p-table p-mt-1">
+      {{#if client.connectedAt}}
+        <div class="p-row">
+          <span class="p-key">Connected At</span>
+          <span class="p-value">{{client.connectedAt}}</span>
+        </div>
+      {{/if}}
+      {{#if client.uptime}}
+        <div class="p-row">
+          <span class="p-key">Uptime</span>
+          <span class="p-value">{{format-uptime client.uptime}}</span>
+        </div>
+      {{/if}}
+      {{#if client.rxBytes}}
+        <div class="p-row">
+          <span class="p-key">Rx / Tx</span>
+          <span class="p-value">{{format-bytes client.rxBytes}} / {{format-bytes client.txBytes}}</span>
+        </div>
+      {{/if}}
+      {{#if (and client.signalDbm (eq client.type 'WIRELESS'))}}
+        <div class="p-row">
+          <span class="p-key">Signal</span>
+          <span class="p-value">{{client.signalDbm}} dBm</span>
+        </div>
+      {{/if}}
+    </div>
+
+    {{! Action Buttons (only shown when not blocked) }}
+    {{#if (not-eq client.status 'BLOCKED')}}
+      <div class="p-actions p-mt-2">
+        {{#if (get isBlockingClient client.clientId)}}
+          <i class="fa fa-spinner fa-spin"></i> Working...
+        {{else}}
+          <button
+            class="p-btn btn-sm btn-danger p-mr-1"
+            {{action "blockClient" client}}
+          >
+            ⛔ Block Client
+          </button>
+          <button
+            class="p-btn btn-sm btn-default"
+            {{action "reconnectClient" client}}
+          >
+            🔄 Reconnect
+          </button>
+        {{/if}}
+
+        {{#if (get blockActionMessage client.clientId)}}
+          <div class="p-mt-1 p-footnote">
+            {{get blockActionMessage client.clientId}}
+          </div>
+        {{/if}}
+      </div>
+    {{/if}}
+
+  {{/block-section}}
+{{/each}}
+
+{{! ── Infrastructure Devices ─────────────────────────────────────────────── }}
+{{#each details.devices as |device|}}
+  {{#block-section
+    title=(concat "📡 Infrastructure Device — " device.siteName)
+    isOpen=(and (eq @index 0) (eq details.clients.length 0))
+  }}
+
+    {{! Identity Table }}
+    <div class="p-table">
+      {{#if device.name}}
+        <div class="p-row">
+          <span class="p-key">Name</span>
+          <span class="p-value">{{device.name}}</span>
+        </div>
+      {{/if}}
+      {{#if device.macAddress}}
+        <div class="p-row">
+          <span class="p-key">MAC Address</span>
+          <span class="p-value">{{device.macAddress}}</span>
+        </div>
+      {{/if}}
+      {{#if device.ipAddress}}
+        <div class="p-row">
+          <span class="p-key">IP Address</span>
+          <span class="p-value">{{device.ipAddress}}</span>
+        </div>
+      {{/if}}
+      {{#if device.model}}
+        <div class="p-row">
+          <span class="p-key">Model</span>
+          <span class="p-value">{{device.model}}</span>
+        </div>
+      {{/if}}
+      {{#if device.productLine}}
+        <div class="p-row">
+          <span class="p-key">Product Line</span>
+          <span class="p-value">{{device.productLine}}</span>
+        </div>
+      {{/if}}
+    </div>
+
+    {{! Status Table }}
+    <div class="p-table p-mt-1">
+      {{#if device.state}}
+        <div class="p-row">
+          <span class="p-key">State</span>
+          <span class="p-value
+            {{if (eq device.state 'ONLINE') 'p-text-green'}}
+            {{if (eq device.state 'OFFLINE') 'p-text-red'}}
+            {{if (eq device.state 'UPDATING') 'p-text-yellow'}}
+          ">{{device.state}}</span>
+        </div>
+      {{/if}}
+      {{#if device.firmwareVersion}}
+        <div class="p-row">
+          <span class="p-key">Firmware</span>
+          <span class="p-value">{{device.firmwareVersion}}</span>
+        </div>
+      {{/if}}
+      {{#if device.uptime}}
+        <div class="p-row">
+          <span class="p-key">Uptime</span>
+          <span class="p-value">{{format-uptime device.uptime}}</span>
+        </div>
+      {{/if}}
+      <div class="p-row">
+        <span class="p-key">Site</span>
+        <span class="p-value">{{device.siteName}}</span>
+      </div>
+    </div>
+
+    {{! No action buttons for infrastructure devices in V1 }}
+
+  {{/block-section}}
+{{/each}}

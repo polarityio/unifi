@@ -1,0 +1,38 @@
+{{! UniFi Network — Summary Template }}
+<div class="unifi-summary">
+  {{#each details.clients as |client|}}
+    <span class="p-tag p-tag-dark-blue">🖥 Client</span>
+    {{#if (eq client.status 'BLOCKED')}}
+      <span class="p-tag p-tag-dark-red">⛔ Blocked</span>
+    {{else if (eq client.status 'CONNECTED')}}
+      <span class="p-tag p-tag-green">✅ Connected</span>
+    {{/if}}
+    {{#if client.name}}
+      <span class="p-tag">{{client.name}}</span>
+    {{/if}}
+    {{#if client.siteName}}
+      <span class="p-tag p-tag-gray">Site: {{client.siteName}}</span>
+    {{/if}}
+  {{/each}}
+
+  {{#each details.devices as |device|}}
+    <span class="p-tag p-tag-warning">📡 Device</span>
+    {{#if (eq device.state 'ONLINE')}}
+      <span class="p-tag p-tag-green">🟢 Online</span>
+    {{else if (eq device.state 'OFFLINE')}}
+      <span class="p-tag p-tag-dark-red">🔴 Offline</span>
+    {{else if (eq device.state 'UPDATING')}}
+      <span class="p-tag p-tag-yellow">⚙️ Updating</span>
+    {{/if}}
+    {{#if device.model}}
+      <span class="p-tag">{{device.model}}</span>
+    {{/if}}
+    {{#if device.siteName}}
+      <span class="p-tag p-tag-gray">Site: {{device.siteName}}</span>
+    {{/if}}
+  {{/each}}
+
+  {{#if details.error}}
+    <span class="p-tag p-tag-dark-red">⚠️ Error</span>
+  {{/if}}
+</div>
