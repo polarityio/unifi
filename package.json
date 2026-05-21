@@ -1,0 +1,23 @@
+{
+  "name": "unifi",
+  "version": "1.0.0",
+  "description": "Polarity integration for UniFi Network — IP & MAC lookup, multi-site, block/reconnect actions",
+  "main": "integration.js",
+  "scripts": {
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "polarity",
+    "unifi",
+    "network",
+    "ubiquiti"
+  ],
+  "author": "Polarity",
+  "license": "MIT",
+  "dependencies": {
+    "async": "^3.2.4",
+    "lodash": "^4.17.21",
+    "polarity-integration-utils": "^4.1.0",
+    "postman-request": "^2.88.1-postman.32"
+  }
+}

@@ -1,0 +1,9 @@
+name: Release Current Version
+
+on:
+  push:
+    branches: [ master, main, support/v1 ]
+
+jobs:
+  Run:
+    uses: polarityio/polarity-github-actions/.github/workflows/release-integration.yml@master

@@ -1,0 +1,236 @@
+{{! UniFi Network — Block (Detail) Template }}
+
+{{#if details.error}}
+  <div class="unifi-error">
+    {{fa-icon "exclamation-triangle" fixedWidth=true}} {{details.error}}
+  </div>
+{{/if}}
+
+{{! ── Connected Clients ──────────────────────────────────────────────────── }}
+{{#if hasClients}}
+  <div class="unifi-section-toggle" {{action "toggleSection" "Clients"}}>
+    <span class="p-title">
+      {{fa-icon "desktop" fixedWidth=true}}
+      Connected Clients
+      <span class="unifi-count">({{details.clients.length}})</span>
+    </span>
+    <span class="unifi-chevron">
+      {{#if block._state.showClients}}
+        {{fa-icon "chevron-up"}}
+      {{else}}
+        {{fa-icon "chevron-down"}}
+      {{/if}}
+    </span>
+  </div>
+
+  {{#if block._state.showClients}}
+    <div class="unifi-section-body">
+      {{#each details.clients as |client|}}
+        <div class="unifi-item-entry">
+
+          {{! Identity }}
+          {{#if client.name}}
+            <div>
+              <span class="p-key">Host Name</span>
+              <span class="p-value">{{client.name}}</span>
+            </div>
+          {{/if}}
+          {{#if client.ipAddress}}
+            <div>
+              <span class="p-key">IP Address</span>
+              <span class="p-value">{{client.ipAddress}}</span>
+            </div>
+          {{/if}}
+          {{#if client.macAddress}}
+            <div>
+              <span class="p-key">MAC Address</span>
+              <span class="p-value">{{client.macAddress}}</span>
+            </div>
+          {{/if}}
+          {{#if client.type}}
+            <div>
+              <span class="p-key">Type</span>
+              <span class="p-value">{{client.type}}</span>
+            </div>
+          {{/if}}
+
+          {{! Status — inline {{if}} helper (not block helper) is valid inside class attribute }}
+          {{#if client.status}}
+            <div>
+              <span class="p-key">Status</span>
+              <span class="p-value {{if (eq client.status 'CONNECTED') 'unifi-status-connected'}} {{if (eq client.status 'BLOCKED') 'unifi-status-blocked'}}">
+                {{client.status}}
+              </span>
+            </div>
+          {{/if}}
+
+          {{! Network }}
+          {{#if client.siteName}}
+            <div>
+              <span class="p-key">Site</span>
+              <span class="p-value">{{client.siteName}}</span>
+            </div>
+          {{/if}}
+          {{#if (and client.ssid (eq client.type 'WIRELESS'))}}
+            <div>
+              <span class="p-key">SSID</span>
+              <span class="p-value">{{client.ssid}}</span>
+            </div>
+          {{/if}}
+          {{#if client.networkId}}
+            <div>
+              <span class="p-key">Network ID</span>
+              <span class="p-value">{{client.networkId}}</span>
+            </div>
+          {{/if}}
+          {{#if client.uplinkDeviceMac}}
+            <div>
+              <span class="p-key">Uplink Device</span>
+              <span class="p-value">{{client.uplinkDeviceMac}}</span>
+            </div>
+          {{/if}}
+
+          {{! Timing / Signal }}
+          {{#if client.connectedAt}}
+            <div>
+              <span class="p-key">Connected At</span>
+              <span class="p-value">{{client.connectedAt}}</span>
+            </div>
+          {{/if}}
+          {{#if client.uptime}}
+            <div>
+              <span class="p-key">Uptime (s)</span>
+              <span class="p-value">{{client.uptime}}</span>
+            </div>
+          {{/if}}
+          {{#if (and client.signalDbm (eq client.type 'WIRELESS'))}}
+            <div>
+              <span class="p-key">Signal</span>
+              <span class="p-value">{{client.signalDbm}} dBm</span>
+            </div>
+          {{/if}}
+
+          {{! Action Buttons — only shown when client is not already blocked }}
+          {{#if (not (eq client.status 'BLOCKED'))}}
+            <div class="unifi-actions">
+              {{#if (get block._state.isBlocking client.clientId)}}
+                <span class="unifi-working">{{fa-icon "spinner" spin=true}} Working...</span>
+              {{else}}
+                <button
+                  class="p-btn btn-sm btn-danger unifi-action-btn"
+                  {{action "blockClient" client}}
+                >
+                  ⛔ Block
+                </button>
+                <button
+                  class="p-btn btn-sm btn-default unifi-action-btn"
+                  {{action "reconnectClient" client}}
+                >
+                  🔄 Reconnect
+                </button>
+              {{/if}}
+              {{#if (get block._state.actionMessage client.clientId)}}
+                <div class="unifi-action-msg">
+                  {{get block._state.actionMessage client.clientId}}
+                </div>
+              {{/if}}
+            </div>
+          {{/if}}
+
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+{{/if}}
+
+{{! ── Infrastructure Devices ─────────────────────────────────────────────── }}
+{{#if hasDevices}}
+  <div class="unifi-section-toggle" {{action "toggleSection" "Devices"}}>
+    <span class="p-title">
+      {{fa-icon "wifi" fixedWidth=true}}
+      Infrastructure Devices
+      <span class="unifi-count">({{details.devices.length}})</span>
+    </span>
+    <span class="unifi-chevron">
+      {{#if block._state.showDevices}}
+        {{fa-icon "chevron-up"}}
+      {{else}}
+        {{fa-icon "chevron-down"}}
+      {{/if}}
+    </span>
+  </div>
+
+  {{#if block._state.showDevices}}
+    <div class="unifi-section-body">
+      {{#each details.devices as |device|}}
+        <div class="unifi-item-entry">
+
+          {{! Identity }}
+          {{#if device.name}}
+            <div>
+              <span class="p-key">Name</span>
+              <span class="p-value">{{device.name}}</span>
+            </div>
+          {{/if}}
+          {{#if device.macAddress}}
+            <div>
+              <span class="p-key">MAC Address</span>
+              <span class="p-value">{{device.macAddress}}</span>
+            </div>
+          {{/if}}
+          {{#if device.ipAddress}}
+            <div>
+              <span class="p-key">IP Address</span>
+              <span class="p-value">{{device.ipAddress}}</span>
+            </div>
+          {{/if}}
+          {{#if device.model}}
+            <div>
+              <span class="p-key">Model</span>
+              <span class="p-value">{{device.model}}</span>
+            </div>
+          {{/if}}
+          {{#if device.productLine}}
+            <div>
+              <span class="p-key">Product Line</span>
+              <span class="p-value">{{device.productLine}}</span>
+            </div>
+          {{/if}}
+
+          {{! State — inline {{if}} is valid inside class attribute }}
+          {{#if device.state}}
+            <div>
+              <span class="p-key">State</span>
+              <span class="p-value {{if (eq device.state 'ONLINE') 'unifi-status-connected'}} {{if (eq device.state 'OFFLINE') 'unifi-status-blocked'}} {{if (eq device.state 'UPDATING') 'unifi-status-updating'}}">
+                {{device.state}}
+              </span>
+            </div>
+          {{/if}}
+
+          {{! Firmware / Uptime }}
+          {{#if device.firmwareVersion}}
+            <div>
+              <span class="p-key">Firmware</span>
+              <span class="p-value">{{device.firmwareVersion}}</span>
+            </div>
+          {{/if}}
+          {{#if device.uptime}}
+            <div>
+              <span class="p-key">Uptime (s)</span>
+              <span class="p-value">{{device.uptime}}</span>
+            </div>
+          {{/if}}
+
+          {{! Site }}
+          {{#if device.siteName}}
+            <div>
+              <span class="p-key">Site</span>
+              <span class="p-value">{{device.siteName}}</span>
+            </div>
+          {{/if}}
+
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+{{/if}}
