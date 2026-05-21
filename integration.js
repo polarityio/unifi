@@ -362,7 +362,7 @@ function doLookup(entities, options, cb) {
 
         // Step 2: for each site, run clients + devices in parallel
         const perSiteTasks = sites.flatMap((site) => {
-          const siteId = site.siteId;
+          const siteId = site.id;
           const siteName = site.name || site.meta?.desc || siteId;
 
           return [
